@@ -243,6 +243,33 @@ class ProductFormComponent extends Component {
     return cartQty;
   }
 
+  async #addBulkOrderCartAttribute(cart) {
+    if (!cart?.items) return 0;
+    const hasBulkyItem = cart.items.some((item) => item.quantity >= 2);
+
+    console.log(hasBulkyItem);
+
+    try {
+        const config = fetchConfig('json', {
+          body: JSON.stringify({ 
+            attributes: {
+              bulk_order: hasBulkyItem
+            }
+           }),
+        });
+
+        const resp = await fetch(Theme.routes.cart_update_url, {
+          ...config,
+        });
+
+        const bulkCart = await resp.json();
+
+        console.log(bulkCart)
+      } catch (error) {
+        console.error(error);
+      }
+  }
+
   /**
    * Fetches the current cart and updates the quantity display.
    * @returns {Promise<Cart | null>} The cart object, or null if fetch fails.
@@ -256,6 +283,7 @@ class ProductFormComponent extends Component {
       const cart = await response.json();
 
       this.#updateCartQuantityFromData(cart);
+      this.#addBulkOrderCartAttribute(cart);
       return cart;
     } catch (error) {
       console.error('Failed to fetch cart quantity:', error);
